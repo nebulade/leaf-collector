@@ -5,7 +5,9 @@
 
 <body>
 
-<script language="javascript" src="javascript/jquery-1.8.2.js"></script>
+<link rel="stylesheet" href="lib/jquery-ui.css">
+<script src="lib/jquery-1.8.2.js"></script>
+<script src="lib/jquery-ui.js"></script>
 
 <script language="javascript">
 
@@ -42,6 +44,15 @@ var postData ="message=Some message";
 <a href="javascript: echo();">Hello World!</a>
 
 <div id="output">Result</div>
+
+<div id="myButton">
+Hello World
+</div>
+
+<script>
+$("#myButton").button();
+$("#myButton").click(function() { echo(); });
+</script>
 
 </body>
 
