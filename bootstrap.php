@@ -1,10 +1,6 @@
 <?php
 
-require_once("guard.php");
-require_once("util.php");
-require_once("class/Project.php");
-
-$project = new Project();
+require_once("session.php");
 
 ?>
 
@@ -47,36 +43,20 @@ $project = new Project();
           </a>
           <a class="brand" href="#">Leaf Collector</a>
           <div class="nav-collapse collapse">
-            <div class="navbar-text pull-right">
-                <div class="dropdown">
-                Logged in as <a class="navbar-linkdropdown-toggle" data-toggle="dropdown" href="#"><?php echo getUser(); ?></a>
-                <ul class="dropdown-menu">
-                    <li><a tabindex="-1" href="#"><i class="icon-user"></i> Profile</a></li>
-                    <li><a tabindex="1" href="javascript: sessionApi('logout', {}, function() { window.location.reload(); });"><i class="icon-off"></i> Logout</a></li>
-                </ul>
-                </div>
-            </div>
+            <p class="navbar-text pull-right">
+              Logged in as <a href="#" class="navbar-link">Username</a>
+            </p>
             <ul class="nav">
               <li><a href="#">Current Project</a></li>
               <li>
               <div class="btn-group">
                 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                <?php $tmp = $project->currentProject(); if ($tmp != "") echo $tmp; else echo "none"; ?>
+                DMX Dongle
                 <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu">
-                <script>
-                    function selectProject(name) {
-                        console.log(projectApi('select', {'name' : name}, function(data) {
-                            window.location.reload();
-                            }));
-                        }
-                </script>
-                    <?php
-                        foreach($project->listAll() as $project) {
-                            echo "<li><a tabindex='-1' href=\"javascript: selectProject('" . $project["name"] . "');\">" . $project["name"] . "</a></li>";
-                        }
-                    ?>
+                    <li><a tabindex="-1" href="#">DMX Dongle</a></li>
+                    <li><a tabindex="1" href="#">Flash555</a></li>
                 </ul>
                 </div></li>
             </ul>
@@ -97,7 +77,7 @@ $project = new Project();
               <li><a href="#">Notes</a></li>
               <li><a href="#">Project</a></li>
               <li class="nav-header">Actions</li>
-              <li><a href="#">New Project</a></li>
+              <li><a href="#">User defined</a></li>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -116,7 +96,5 @@ $project = new Project();
 
     <script src="lib/jquery-1.8.2.js"></script>
     <script src="lib/bootstrap/js/bootstrap.js"></script>
-    <script src="javascript/session.js"></script>
-    <script src="javascript/project.js"></script>
   </body>
 </html>
