@@ -14,7 +14,7 @@ if ($action == "logout") {
     $user = $data["user"];
     $password = $data["password"];
 
-    if ($user == "jzellner") {
+    if ($user != "") {
         session_start();
 
         $_SESSION["user"] = $user;
