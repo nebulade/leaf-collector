@@ -2,7 +2,8 @@ var express = require('express')
 , app = express()
 , io = require('socket.io').listen(app)
 , config = require('./config.js')
-, api = require('./api.js');
+, api = require('./api.js')
+, projectApi = require('./api/project.js');
 
 console.log("");
 console.log("+ Starting server");
@@ -15,6 +16,11 @@ app.listen(config.server.port);
 // index if no url is specified
 app.get('/', function (req, res) {
     res.sendfile(config.server.root + '/index.html');
+});
+
+// api calls which return JSON
+app.get('/api/project*', function (req, res) {
+    res.json(projectApi.request(req));
 });
 
 // api calls which return JSON
