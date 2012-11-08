@@ -3,7 +3,8 @@ var express = require('express')
 , io = require('socket.io').listen(app)
 , config = require('./config.js')
 , api = require('./api.js')
-, projectApi = require('./api/project.js');
+, projectApi = require('./api/project.js')
+, sessionApi = require('./api/session.js');
 
 console.log("");
 console.log("+ Starting server");
@@ -13,32 +14,71 @@ console.log("");
 
 app.listen(config.server.port);
 
+app.use(express.cookieParser('leafcollector'));
+app.use(express.cookieSession({
+    path: '/',
+    httpOnly: true,
+    maxAge: null,
+    secret: 'leafcollector',
+    key: 'leafcollector.sess'
+}));
+
+sessionApi.sessionManager.config = config;
+
 // index if no url is specified
 app.get('/', function (req, res) {
-    res.sendfile(config.server.root + '/index.html');
+    sessionApi.validateUser(req, res, function() {
+        res.sendfile(config.server.root + '/index.html');
+    });
 });
 
 // api calls which return JSON
 app.get('/api/project*', function (req, res) {
-    res.json(projectApi.request(req));
+    sessionApi.validateUser(req, res, function() {
+        projectApi.request(req, function (result) {
+            res.json(result);
+        });
+    });
+});
+
+// api calls which return JSON
+app.get('/api/session*', function (req, res) {
+    sessionApi.request(req, function (result) {
+        res.json(result);
+    });
 });
 
 // api calls which return JSON
 app.get('/api/*', function (req, res) {
-    api.request(req);
-    res.sendfile(config.server.root + req.url);
+    sessionApi.validateUser(req, res, function() {
+        api.request(req);
+        res.sendfile(config.server.root + req.url);
+    });
+});
+
+// js lib catchall
+app.get('/lib/*', function (req, res) {
+   console.log("js lib file request: ", req.url);
+   res.sendfile(config.server.root + req.url);
+});
+
+// css catchall
+app.get('*.css', function (req, res) {
+   console.log("css file request: ", req.url);
+   res.sendfile(config.server.root + req.url);
+});
+
+// css catchall
+app.get('/third-party/*', function (req, res) {
+   console.log("third-party file request: ", req.url);
+   res.sendfile(config.server.root + req.url);
 });
 
 // catchall
 app.get('*', function (req, res) {
-   console.log("file request: ", req.url);
-   res.sendfile(config.server.root + req.url);
+    sessionApi.validateUser(req, res, function() {
+       console.log("file request: ", req.url);
+       res.sendfile(config.server.root + req.url);
+   });
 });
 
-io.sockets.on('connection', function (socket) {
-    console.log("new connection :", socket);
-    socket.emit('news', { hello: 'world' });
-    socket.on('my other event', function (data) {
-        console.log(data);
-    });
-});
