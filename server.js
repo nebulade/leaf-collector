@@ -1,10 +1,12 @@
-var express = require('express')
-, app = express()
-, io = require('socket.io').listen(app)
-, config = require('./config.js')
-, api = require('./api.js')
-, projectApi = require('./api/project.js')
-, sessionApi = require('./api/session.js');
+var express = require('express');
+var app = express();
+var io = require('socket.io').listen(app);
+var config = require('./config.js');
+var api = require('./api.js');
+var projectApi = require('./api/project.js');
+var sessionApi = require('./api/session.js');
+var RedisStore = require('connect-redis')(express);
+var redis = require("redis").createClient();
 
 console.log("");
 console.log("+ Starting server");
@@ -19,8 +21,7 @@ app.use(express.cookieSession({
     path: '/',
     httpOnly: true,
     maxAge: null,
-    secret: 'leafcollector',
-    key: 'leafcollector.sess'
+    store: new RedisStore({ host: 'localhost', port: 3000, client: redis })
 }));
 
 sessionApi.sessionManager.config = config;
@@ -35,16 +36,16 @@ app.get('/', function (req, res) {
 // api calls which return JSON
 app.get('/api/project*', function (req, res) {
     sessionApi.validateUser(req, res, function() {
-        projectApi.request(req, function (result) {
-            res.json(result);
+        projectApi.request(req, function (error, result) {
+            res.json({'error': error, 'result': result});
         });
     });
 });
 
 // api calls which return JSON
 app.get('/api/session*', function (req, res) {
-    sessionApi.request(req, function (result) {
-        res.json(result);
+    sessionApi.request(req, function (error, result) {
+        res.json({'error': error, 'result': result});
     });
 });
 
@@ -77,7 +78,7 @@ app.get('/third-party/*', function (req, res) {
 // catchall
 app.get('*', function (req, res) {
     sessionApi.validateUser(req, res, function() {
-       console.log("file request: ", req.url);
+       console.log("file request url: ", req.url);
        res.sendfile(config.server.root + req.url);
    });
 });

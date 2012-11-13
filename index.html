@@ -6,6 +6,10 @@
     <meta name="description" content="Leaf Collector">
     <meta name="author" content="Johannes Zellner">
 
+    <script src="third-party/jquery-1.8.2.js"></script>
+    <script src="third-party/bootstrap/js/bootstrap.js"></script>
+    <script src="lib/util.js"></script>
+
     <!-- Le styles -->
     <link href="third-party/bootstrap/css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
@@ -47,40 +51,53 @@
                 </div>
             </div>
             <ul class="nav">
-              <li><a href="#">!!Current Project!!</a></li>
-              <li>
-              <div class="btn-group" onclick="javascript: refreshProjectList();">
+              <li><a href="#" id="currentProjectLink">
+              <script>
+                $(document).ready(function(){
+                    projectApi('currentProject', {}, function (data) {
+                      if (data.error) {
+                        $("#currentProjectLink").append("");
+                      } else {
+                        $("#currentProjectLink").append(data.result.name);
+                      }
+                    });
+                  });
+              </script>
+              </a></li>
+              <li><div class="btn-group" onclick="javascript: refreshProjectList();">
                 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-                Current project
-                <span class="caret"></span>
+                  Current project
+                  <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu" id="projectsList">
-                <script>
+                  <script>
 
-                    var projectList = [];
+                      var projectList = [];
 
-                    function refreshProjectList() {
-                        projectApi('listAll', {}, function (data) {
-                            for (var i in data) {
-                                if (data[i] in projectList)
-                                    continue;
+                      function refreshProjectList() {
+                          projectApi('listAll', {}, function (data) {
+                            console.dir(data);
+                              for (var i in data.result) {
+                                  if (data.result[i] in projectList)
+                                      continue;
 
-                                projectList[data[i]] = data[i];
+                                  projectList[data.result[i]] = data.result[i];
 
-                                $('#projectsList').append('<li><a href="#">' + data[i] + '</a></li>');
-                            }
-                            console.log("listaAll: " + data);
-                        });
-                    };
+                                  $('#projectsList').append('<li><a href="javascript: selectProject(\'' + data.result[i] + '\');">' + data.result[i] + '</a></li>');
+                              }
+                              console.log("listaAll: " + data.result);
+                          });
+                      };
 
-                    function selectProject(name) {
-                        console.log(projectApi('select', {'name' : name}, function(data) {
-                            window.location.reload();
-                            }));
-                        }
-                </script>
+                      function selectProject(name) {
+                          console.log(projectApi('select', {'name' : name}, function(data) {
+                              window.location.reload();
+                            })
+                          );
+                      }
+                  </script>
                 </ul>
-                </div></li>
+              </div></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -99,7 +116,70 @@
               <li><a href="#">Notes</a></li>
               <li><a href="#">Project</a></li>
               <li class="nav-header">Actions</li>
-              <li><a href="#">New Project</a></li>
+              <li>
+                <script>
+                  var newProjectForm;
+
+                  function NewProjectForm() {
+                    var that = this;
+
+                    this.visible = false;
+                    this.inputTag = $("#newProjectInput");
+                    this.formTag = $("#newProjectForm");
+
+                    this.inputTag.keyup(function(event){
+                      if (event.keyCode == 27) {
+                        that.hideNewProjectForm();
+                      }
+                    });
+                  }
+
+                  NewProjectForm.prototype.toggleNewProjectForm = function() {
+                    if (this.visible) {
+                      this.hideNewProjectForm();
+                    } else {
+                      this.showNewProjectForm();
+                    }
+                  }
+
+                  NewProjectForm.prototype.showNewProjectForm = function() {
+                    var that = this;
+
+                    this.formTag.animate({ opacity: 1, height: 30 }, 500, function() {
+                      that.visible = true;
+                      that.inputTag.focus();
+                    });
+                  }
+
+                  NewProjectForm.prototype.hideNewProjectForm = function() {
+                    var that = this;
+
+                    this.formTag.animate({ opacity: 0, height: 0 }, 500, function() {
+                      that.visible = false;
+                    });
+                  }
+
+                  NewProjectForm.prototype.submitNewProjectForm = function() {
+                    var that = this;
+
+                    projectApi('create', {name: this.inputTag.val()}, function (data) {
+                      that.hideNewProjectForm();
+                    });
+                  }
+
+                  $(document).ready(function(){
+                    newProjectForm = new NewProjectForm();
+                  });
+
+                </script>
+                <div id="newProjectAction"><a href="javascript: newProjectForm.toggleNewProjectForm();">New Project</a></div>
+                <div id="newProjectForm" style="opacity: 0; height: 0px">
+                  <form class="form-inline" action="" onSubmit="javascript: newProjectForm.submitNewProjectForm();">
+                    <input type="text" id="newProjectInput">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                  </form>
+                </div>
+              </li>
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -115,9 +195,5 @@
       </footer>
 
     </div><!--/.fluid-container-->
-
-    <script src="third-party/jquery-1.8.2.js"></script>
-    <script src="third-party/bootstrap/js/bootstrap.js"></script>
-    <script src="lib/util.js"></script>
   </body>
 </html>
